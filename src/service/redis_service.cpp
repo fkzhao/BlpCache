@@ -1,0 +1,46 @@
+//
+// Created by fakzhao on 2025/8/1.
+//
+
+#include "redis_service.h"
+#include "store/db.h"
+
+namespace blp {
+    RedisServiceImpl::RedisServiceImpl() {
+
+    }
+
+    bool RedisServiceImpl::Set(const std::string &key, const std::string &value) const {
+        if (!_db->put(key, value)) {
+            LOG(ERROR) << "Failed to set key in storage";
+            return false;
+        }
+        return true;
+    }
+
+    bool RedisServiceImpl::Auth(const std::string &password) {
+        if (password != "123456") {
+            LOG(ERROR) << "Invalid password";
+            return false;
+        }
+        return true;
+    }
+
+    bool RedisServiceImpl::Get(const std::string &key, std::string *value) const {
+        return _db->get(key, value);
+    }
+
+    bool RedisServiceImpl::Del(const std::string &key) const {
+        if (! _db->remove(key)) {
+            LOG(ERROR) << "Failed to delete key in storage";
+            return false;
+        }
+        return true;
+    }
+
+    void RedisServiceImpl::AddCommandHandler(const std::string &command, std::unique_ptr<brpc::RedisCommandHandler> handler) {
+        command_handlers_[command] = std::move(handler);
+        RedisService::AddCommandHandler(command, command_handlers_[command].get());
+    }
+
+}

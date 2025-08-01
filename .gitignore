@@ -1,0 +1,109 @@
+# Build directories
+build/
+cmake-build-*/
+out/
+
+# Compiled Object files
+*.o
+*.obj
+*.ko
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+# CLion
+.idea/
+cmake-build-debug/
+cmake-build-release/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Logs
+*.log
+
+# Temporary files
+*~
+*.swp
+*.swo
+.tmp
+
+# Dependencies
+third_party/
+vendor/
+
+# Test coverage
+*.gcda
+*.gcno
+*.gcov
+coverage/
+
+# Redis data files
+*.rdb
+*.aof
+
+# LevelDB data
+*.ldb
+*.log
+LOCK
+CURRENT
+MANIFEST-*
