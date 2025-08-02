@@ -5,7 +5,7 @@
 #include <string>
 #include <brpc/redis.h>
 
-#include "store/db.h"
+#include "core/db.h"
 
 namespace blp {
     class RedisServiceImpl final : public brpc::RedisService {
@@ -23,7 +23,7 @@ namespace blp {
         void AddCommandHandler(const std::string& command, std::unique_ptr<brpc::RedisCommandHandler> handler);
 
     private:
-        DBStorage *_db = DBStorage::getInstance();
+        LevelDBWrapper *_db = LevelDBWrapper::getInstance();
         std::map<std::string, std::unique_ptr<brpc::RedisCommandHandler>> command_handlers_;
     };
 }

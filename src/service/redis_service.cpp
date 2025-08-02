@@ -3,7 +3,7 @@
 //
 
 #include "redis_service.h"
-#include "store/db.h"
+#include "core/db.h"
 
 namespace blp {
     RedisServiceImpl::RedisServiceImpl() {

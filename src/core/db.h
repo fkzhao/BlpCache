@@ -5,14 +5,16 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 #include <leveldb/db.h>
+#include "replcate/sync_service.pb.h"
 
 namespace blp {
-    class DBStorage {
+    class LevelDBWrapper {
     public:
 
         // get singleton instance
-        static DBStorage* getInstance();
+        static LevelDBWrapper* getInstance();
 
         // initialize the database with the specified path and options
         bool init(const std::string& dbPath, size_t cacheSizeMB = 128, size_t writeBufferSizeMB = 64, int maxOpenFiles = 1000) const;
@@ -36,17 +38,23 @@ namespace blp {
         // Note: The snapshot must be released after use to avoid memory leaks
         void releaseSnapshot(const leveldb::Snapshot* snapshot) const;
 
-        DBStorage(const DBStorage&) = delete;
-        DBStorage& operator=(const DBStorage&) = delete;
+        LevelDBWrapper(const LevelDBWrapper&) = delete;
+        LevelDBWrapper& operator=(const LevelDBWrapper&) = delete;
 
-        ~DBStorage();
+        void getAllData(std::vector<DataItem>& data_items) const;
+        void getIncrementalData(const std::string& last_message_id, std::vector<DataItem>& data_items) const;
+
+
+        ~LevelDBWrapper();
 
     private:
-        DBStorage();
+        LevelDBWrapper();
 
         class Impl;
         std::unique_ptr<Impl> impl_;
     };
+
+    bool init_db();
 }
 
 

@@ -7,9 +7,11 @@
 #include <leveldb/cache.h>
 #include <leveldb/filter_policy.h>
 #include <mutex>
+#include <string>
+#include <iostream>
 
 namespace blp {
-    class DBStorage::Impl {
+    class LevelDBWrapper::Impl {
     public:
         Impl() : db_(nullptr), cache_(nullptr), filter_policy_(nullptr) {
         }
@@ -74,6 +76,11 @@ namespace blp {
             }
         }
 
+        leveldb::Iterator* newIterator() {
+            leveldb::ReadOptions readOptions;
+            return db_ ? db_->NewIterator(readOptions) : nullptr;
+        }
+
         ~Impl() {
             delete db_;
             delete cache_;
@@ -87,42 +94,85 @@ namespace blp {
         mutable std::mutex mutex_;
     };
 
-    DBStorage* DBStorage::getInstance() {
+    LevelDBWrapper* LevelDBWrapper::getInstance() {
         // C++ 17 standard guarantees that the initialization of a static local variable is thread-safe.
-        static DBStorage instance;
+        static LevelDBWrapper instance;
         return &instance;
     }
 
-    DBStorage::DBStorage() : impl_(std::make_unique<Impl>()) {
+    LevelDBWrapper::LevelDBWrapper() : impl_(std::make_unique<Impl>()) {
     }
 
-    DBStorage::~DBStorage() = default;
+    LevelDBWrapper::~LevelDBWrapper() = default;
 
-    bool DBStorage::init(const std::string &dbPath, size_t cacheSizeMB, size_t writeBufferSizeMB, int maxOpenFiles) const {
+    bool LevelDBWrapper::init(const std::string &dbPath, size_t cacheSizeMB, size_t writeBufferSizeMB, int maxOpenFiles) const {
         return impl_->init(dbPath, cacheSizeMB, writeBufferSizeMB, maxOpenFiles);
     }
 
-    bool DBStorage::put(const std::string &key, const std::string &value) const {
+    bool LevelDBWrapper::put(const std::string &key, const std::string &value) const {
         return impl_->put(key, value);
     }
 
-    bool DBStorage::get(const std::string &key, std::string *value) const {
+    bool LevelDBWrapper::get(const std::string &key, std::string *value) const {
         return impl_->get(key, value);
     }
 
-    bool DBStorage::remove(const std::string &key) const {
+    bool LevelDBWrapper::remove(const std::string &key) const {
         return impl_->remove(key);
     }
 
-    bool DBStorage::writeBatch(leveldb::WriteBatch &batch) const {
+    bool LevelDBWrapper::writeBatch(leveldb::WriteBatch &batch) const {
         return impl_->writeBatch(batch);
     }
 
-    const leveldb::Snapshot *DBStorage::createSnapshot() const {
+    const leveldb::Snapshot *LevelDBWrapper::createSnapshot() const {
         return impl_->createSnapshot();
     }
 
-    void DBStorage::releaseSnapshot(const leveldb::Snapshot *snapshot) const {
+    void LevelDBWrapper::releaseSnapshot(const leveldb::Snapshot *snapshot) const {
         impl_->releaseSnapshot(snapshot);
+    }
+
+    void LevelDBWrapper::getAllData(std::vector<DataItem>& data_items) const {
+        leveldb::Iterator* it = impl_->newIterator();
+        for (it->SeekToFirst(); it->Valid(); it->Next()) {
+            DataItem item;
+            item.set_key(it->key().ToString());
+            item.set_value(it->value().ToString());
+            item.set_message_id(item.key());
+            data_items.push_back(item);
+        }
+        delete it;
+    }
+
+    void LevelDBWrapper::getIncrementalData(const std::string& last_message_id, std::vector<DataItem>& data_items) const {
+        leveldb::Iterator* it = impl_->newIterator();
+        it->Seek(last_message_id);
+        if (it->Valid() && it->key() == last_message_id) {
+            it->Next();  // Skip last synced item
+        }
+
+        int count = 0;
+        for (; it->Valid(); it->Next()) {
+            DataItem item;
+            item.set_key(it->key().ToString());
+            item.set_value(it->value().ToString());
+            item.set_message_id(item.key());
+            data_items.push_back(item);
+            count++;
+            if (count >= 100) break;
+        }
+        delete it;
+    }
+
+
+    bool init_db() {
+        // Initialize LevelDB storage
+        const auto storage = LevelDBWrapper::getInstance();
+        if (!storage->init("./db", 256, 128, 2000)) {
+            std::cerr << "Failed to initialize LevelDB" << std::endl;
+            return false;
+        }
+        return true;
     }
 }

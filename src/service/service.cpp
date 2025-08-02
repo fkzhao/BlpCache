@@ -10,17 +10,10 @@
 #include "service/cmd_set.h"
 #include "service/cmd_auth.h"
 #include "service/cmd_del.h"
-#include "store/db.h"
+#include "core/db.h"
 
 namespace blp {
     RedisServiceImpl* init_redis_service() {
-
-        // Initialize LevelDB storage
-        const auto storage = DBStorage::getInstance();
-        if (!storage->init("./db", 256, 128, 2000)) {
-            std::cerr << "Failed to initialize LevelDB" << std::endl;
-            return nullptr;
-        }
 
         // Create RedisServiceImpl instance
         auto *redis_service_impl = new RedisServiceImpl();
