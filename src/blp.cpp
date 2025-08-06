@@ -11,8 +11,8 @@
 
 #include "common/config.h"
 #include "service/service.h"
-#include "replica/master_server.h"
-
+#include "common/sequence_number.h"
+#include "common/aof_log.h"
 
 int main(int argc, char* argv[]) {
     google::ParseCommandLineFlags(&argc, &argv, true);
@@ -49,23 +49,23 @@ int main(int argc, char* argv[]) {
     LOG(INFO) << "Redis Service started on port 6479";
 
     // init master server
-    LOG(INFO) << "Starting Master Server...";
-    brpc::Server master_server;
-    blp::MasterServer master_server_impl;
-    if (master_server.AddService(&master_server_impl, brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
-        LOG(ERROR) << "Fail to add service";
-        return -1;
-    }
-    brpc::ServerOptions master_options;
-    master_options.idle_timeout_sec = 60;
-    if (master_server.Start("127.0.0.1:6480", &master_options) != 0) {
-        LOG(ERROR) << "Fail to start SyncServer";
-        return -1;
-    }
-    LOG(INFO) << "Master Server started on port 6480";
+    // LOG(INFO) << "Starting Master Server...";
+    // brpc::Server master_server;
+    // blp::MasterServer master_server_impl;
+    // if (master_server.AddService(&master_server_impl, brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
+    //     LOG(ERROR) << "Fail to add service";
+    //     return -1;
+    // }
+    // brpc::ServerOptions master_options;
+    // master_options.idle_timeout_sec = 60;
+    // if (master_server.Start("127.0.0.1:6480", &master_options) != 0) {
+    //     LOG(ERROR) << "Fail to start SyncServer";
+    //     return -1;
+    // }
+    // LOG(INFO) << "Master Server started on port 6480";
     std::thread t1([&]{ redis_server.RunUntilAskedToQuit(); });
-    std::thread t2([&]{ master_server.RunUntilAskedToQuit(); });
+    // std::thread t2([&]{ master_server.RunUntilAskedToQuit(); });
     t1.join();
-    t2.join();
+    // t2.join();
     return 0;
 }

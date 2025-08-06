@@ -7,7 +7,6 @@
 #include <memory>
 #include <vector>
 #include <leveldb/db.h>
-#include "replica/sync_service.pb.h"
 
 namespace blp {
     class LevelDBWrapper {
@@ -40,10 +39,6 @@ namespace blp {
 
         LevelDBWrapper(const LevelDBWrapper&) = delete;
         LevelDBWrapper& operator=(const LevelDBWrapper&) = delete;
-
-        void getAllData(std::vector<DataItem>& data_items) const;
-        void getIncrementalData(const std::string& last_message_id, std::vector<DataItem>& data_items) const;
-
 
         ~LevelDBWrapper();
 

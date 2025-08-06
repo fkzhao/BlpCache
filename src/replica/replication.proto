@@ -1,0 +1,27 @@
+syntax = "proto2";
+option cc_generic_services = true;
+package blp;
+
+message DataEntry {
+  required uint64 sequence = 1;
+  required string key = 2;
+  required string value = 3;
+}
+
+message SyncMessage {
+  enum MsgType {
+    FULL_DATA = 0;       // AOF file trunk
+    INCREMENT_DATA = 1;  // incremental data
+    FULL_SYNC_END = 2;   // full sync end
+    INCREMENT_SYNC_END = 3; // incremental sync end
+  }
+  required MsgType type = 1;
+
+  optional DataEntry entry = 2;      // incremental data
+  optional bytes full_chunk = 3;     // full AOF file chunk
+  optional bool is_last_chunk = 4;   // flag to indicate if this is the last chunk of full data
+}
+
+service ReplicationService {
+  rpc Sync(stream SyncMessage) returns (stream SyncMessage);
+}

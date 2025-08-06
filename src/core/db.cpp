@@ -133,38 +133,6 @@ namespace blp {
         impl_->releaseSnapshot(snapshot);
     }
 
-    void LevelDBWrapper::getAllData(std::vector<DataItem>& data_items) const {
-        leveldb::Iterator* it = impl_->newIterator();
-        for (it->SeekToFirst(); it->Valid(); it->Next()) {
-            DataItem item;
-            item.set_key(it->key().ToString());
-            item.set_value(it->value().ToString());
-            item.set_message_id(item.key());
-            data_items.push_back(item);
-        }
-        delete it;
-    }
-
-    void LevelDBWrapper::getIncrementalData(const std::string& last_message_id, std::vector<DataItem>& data_items) const {
-        leveldb::Iterator* it = impl_->newIterator();
-        it->Seek(last_message_id);
-        if (it->Valid() && it->key() == last_message_id) {
-            it->Next();  // Skip last synced item
-        }
-
-        int count = 0;
-        for (; it->Valid(); it->Next()) {
-            DataItem item;
-            item.set_key(it->key().ToString());
-            item.set_value(it->value().ToString());
-            item.set_message_id(item.key());
-            data_items.push_back(item);
-            count++;
-            if (count >= 100) break;
-        }
-        delete it;
-    }
-
 
     bool init_db() {
         // Initialize LevelDB storage

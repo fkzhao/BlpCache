@@ -48,8 +48,3 @@ file(GLOB SOURCE_FILES
 add_executable(BlpCache ${SOURCE_FILES} src/blp.cpp)
 set_target_properties(BlpCache PROPERTIES IMPORTED_LINK_INTERFACE_LANGUAGES "CXX")
 target_link_libraries(BlpCache PRIVATE ${DYNAMIC_LIB})
-
-
-add_executable(SlaveDemo ${SOURCE_FILES} src/slave.cpp)
-set_target_properties(SlaveDemo PROPERTIES IMPORTED_LINK_INTERFACE_LANGUAGES "CXX")
-target_link_libraries(SlaveDemo PRIVATE ${DYNAMIC_LIB})
