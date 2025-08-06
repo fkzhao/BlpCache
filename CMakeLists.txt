@@ -41,9 +41,9 @@ file(GLOB SOURCE_FILES
         "src/service/*.h"
         "src/service/*.cpp"
         "src/service/*.cc"
-        "src/replcate/*.h"
-        "src/replcate/*.cpp"
-        "src/replcate/*.cc"
+        "src/replica/*.h"
+        "src/replica/*.cpp"
+        "src/replica/*.cc"
 )
 add_executable(BlpCache ${SOURCE_FILES} src/blp.cpp)
 set_target_properties(BlpCache PROPERTIES IMPORTED_LINK_INTERFACE_LANGUAGES "CXX")

@@ -7,7 +7,7 @@
 #include <memory>
 #include <vector>
 #include <leveldb/db.h>
-#include "replcate/sync_service.pb.h"
+#include "replica/sync_service.pb.h"
 
 namespace blp {
     class LevelDBWrapper {

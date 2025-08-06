@@ -11,7 +11,7 @@
 
 #include "common/config.h"
 #include "service/service.h"
-#include "replcate/master_server.h"
+#include "replica/master_server.h"
 
 
 int main(int argc, char* argv[]) {

@@ -3,7 +3,7 @@
 //
 #include <butil/logging.h>
 #include <brpc/channel.h>
-#include "replcate/sync_service.pb.h"
+#include "replica/sync_service.pb.h"
 
 
 
