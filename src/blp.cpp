@@ -19,10 +19,12 @@ int main(int argc, char* argv[]) {
 
     // load configuration
     const std::string conf_file = std::string(getenv("BLP_HOME")) + "/conf/blp.conf";
-    if (!blp::config::init(conf_file.c_str(), true, true, true)) {
+    if (!blp::config::init(conf_file)) {
         fprintf(stderr, "error read config file. \n");
         return -1;
     }
+
+    std::cout <<"BLP Cache Start On: " << blp::config::port << std::endl;
 
     // init db
     if (!blp::init_db()) {
