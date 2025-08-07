@@ -3,13 +3,17 @@
 //
 
 #include "cmd_del.h"
-
+#include "common/config.h"
 namespace blp {
     brpc::RedisCommandHandlerResult DelCommandHandler::Run(
             brpc::RedisConnContext* ctx,
             const std::vector<butil::StringPiece>& args,
             brpc::RedisReply* output,
             bool /*flush_batched*/) {
+        if (blp::config::model != "master") {
+            output->FormatError("slaver can not run 'del' command");
+            return brpc::REDIS_CMD_HANDLED;
+        }
         const auto* session = dynamic_cast<AuthSession*>(ctx->get_session());
         if (session == nullptr) {
             output->FormatError("No auth session");

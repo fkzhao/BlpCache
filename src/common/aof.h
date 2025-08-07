@@ -6,9 +6,14 @@
 #include <fstream>
 #include <string>
 #include <mutex>
-#include "replica/replication.pb.h"
 
 namespace blp {
+    class DataEntry {
+    public:
+        uint64_t sequence;
+        std::string key;
+        std::string value;
+    };
     class AOFLog {
     public:
         AOFLog(const std::string& filename);

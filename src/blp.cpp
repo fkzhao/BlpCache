@@ -29,39 +29,40 @@ int main(int argc, char* argv[]) {
     std::cout <<"BLP Cache Start On: " << blp::config::port << std::endl;
 
     // init db
-    // if (!blp::init_db()) {
-    //     fprintf(stderr, "error init db. \n");
-    //     return -1;
-    // }
+    if (!blp::init_db()) {
+        fprintf(stderr, "error init db. \n");
+        return -1;
+    }
 
     // config brpc server
-    // LOG(INFO) << "Starting Redis Service...";
-    // brpc::Server redis_server;
-    // brpc::ServerOptions redis_server_options;
+    LOG(INFO) << "Starting Redis Service...";
+    brpc::Server redis_server;
+    brpc::ServerOptions redis_server_options;
+
+    // init redis service
+    const auto redis_service_impl = blp::init_redis_service();
+    redis_server_options.redis_service = redis_service_impl;
+
+    // start server
+    if (redis_server.Start(blp::config::port, &redis_server_options) != 0) {
+        LOG(ERROR) << "Fail to start server";
+        return -1;
+    }
+    LOG(INFO) << "Redis Service started on port " << blp::config::port;
+
     //
-    // // init redis service
-    // const auto redis_service_impl = blp::init_redis_service();
-    // redis_server_options.redis_service = redis_service_impl;
-    //
-    // // start server
-    // if (redis_server.Start(blp::config::port, &redis_server_options) != 0) {
-    //     LOG(ERROR) << "Fail to start server";
-    //     return -1;
-    // }
-    // LOG(INFO) << "Redis Service started on port " << blp::config::port;
-    // redis_server.RunUntilAskedToQuit();
-    // std::thread t1([&]{ redis_server.RunUntilAskedToQuit(); });
     if (blp::config::model == "master") {
-        std::thread t2([&]{ blp::start_replication_server(blp::config::replica_port); });
-        t2.join();
+        std::thread master_server([&]{ blp::start_replication_server(blp::config::replica_port); });
+        master_server.detach();
     } else if (blp::config::model == "replicate") {
         LOG(INFO) << "Starting Replication Service...";
         std::string host = "127.0.0.1";
-        std::thread t2([&]{ blp::start_replica(host.data(), blp::config::replica_port); });
-        t2.join();
+        std::thread replica_client([&]{ blp::start_replica(host.data(), blp::config::replica_port); });
+        replica_client.detach();
     }  else {
         LOG(ERROR) << "Unknown model: " << blp::config::model;
         return -1;
     }
+    redis_server.RunUntilAskedToQuit();
     return 0;
 }

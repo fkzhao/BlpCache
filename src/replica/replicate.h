@@ -5,7 +5,6 @@
 #pragma once
 #include <brpc/server.h>
 #include <brpc/channel.h>
-#include "replica/replication.pb.h"
 
 namespace blp {
     void start_replica(char* host, uint16_t port);

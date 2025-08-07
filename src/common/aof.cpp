@@ -41,9 +41,9 @@ namespace blp {
             ifs.read(&value[0], value_len);
 
             DataEntry entry;
-            entry.set_sequence(sequence);
-            entry.set_key(key);
-            entry.set_value(value);
+            entry.sequence = sequence;
+            entry.key = key;
+            entry.value = value;
             entries.push_back(entry);
         }
     }
@@ -67,9 +67,9 @@ namespace blp {
 
             if (sequence > from_seq) {
                 DataEntry entry;
-                entry.set_sequence(sequence);
-                entry.set_key(key);
-                entry.set_value(value);
+                entry.sequence = sequence;
+                entry.key = key;
+                entry.value = value;
                 entries.push_back(entry);
             }
         }
