@@ -3,77 +3,66 @@
 //
 
 #include "replicate.h"
-#include "replication.pb.h"
+#include <thread>
+#include "common/socket_utils.h"
+#include "protocol.h"
 
 namespace blp {
+    std::atomic<bool> r_running(true);
 
-    class StreamClientReceiver final : public brpc::StreamInputHandler {
-    public:
-        int on_received_messages(brpc::StreamId id,
-                                         butil::IOBuf *const messages[],
-                                         size_t size) override {
-            std::ostringstream os;
-            for (size_t i = 0; i < size; ++i) {
-                os << "msg[" << i << "]=" << *messages[i];
+    void start_replica(char *host, uint16_t port) {
+        while (r_running) {
+            try {
+                int sockfd = SocketUtils::create_client_socket(host, port);
+                std::cout << "[Replica] Connected to Master at " << host << ":" << port << std::endl;
+                // send heartbeat
+                std::thread heartbeat(start_heartbeat, sockfd);
+                heartbeat.detach();
+
+                //
+                while (r_running) {
+                    MessageHeader header{};
+                    if (!SocketUtils::recv_all(sockfd, &header, sizeof(header))) {
+                        std::cerr << "[Replica] Failed to receive header, disconnecting...\n";
+                        break;
+                    }
+                    header.from_network_order();
+
+                    if (header.type == ACK) {
+                        std::cout << "[Replica] Received ACK from Master, starting sync...\n";
+                        continue;
+                    }
+
+                    std::string payload(header.payload_len, 0);
+                    if (!SocketUtils::recv_all(sockfd, payload.data(), header.payload_len)) {
+                        std::cerr << "[Replica] Failed to receive payload, disconnecting...\n";
+                        break;
+                    }
+
+                    if (header.type == FULL_SYNC) {
+                        std::cout << "[Replica] Receiving FULL_SYNC chunk offset " << header.offset << " size " << header.
+                                payload_len << std::endl;
+                    } else if (header.type == INCR_SYNC) {
+                        std::cout << "[Replica] Receiving INCR_SYNC offset " << header.offset << " size " << header.
+                                payload_len << std::endl;;
+                    } else if (header.type == HEARTBEAT) {
+                        std::cout << "[Replica] Receiving HEARTBEAT offset " << header.offset << " size " << header.
+                               payload_len << std::endl;
+                    } else if (header.type == ACK) {
+                        std::cout << "[Replica] Receiving ACK offset " << header.offset << " size " << header.
+                               payload_len << std::endl;;
+                    } else {
+                        std::cerr << "[Replica] Unknown message type: " << int(header.type) << std::endl;
+                    }
+                }
+
+                close(sockfd);
+                std::cout << "[Replica] Connection closed. Reconnecting in 3 seconds...\n";
+                std::this_thread::sleep_for(std::chrono::seconds(3));
+            } catch (const std::exception &e) {
+                std::cerr << "[Replica] Exception: " << e.what() << ", retrying in 3 seconds...\n";
+                std::this_thread::sleep_for(std::chrono::seconds(3));
             }
-            auto res = brpc::StreamWrite(id, *messages[0]);
-            LOG(INFO) << "Received from Stream=" << id << ": " << os.str() << " and write back result: " << res;
-            return 0;
-        }
-        void on_idle_timeout(brpc::StreamId id) override {
-            LOG(INFO) << "Stream=" << id << " has no data transmission for a while";
-        }
-        void on_closed(brpc::StreamId id) override {
-            LOG(INFO) << "Stream=" << id << " is closed";
-        }
-
-        virtual void on_finished(brpc::StreamId id, int32_t finish_code) {
-            LOG(INFO) << "Stream=" << id << " is finished, code " << finish_code;
-        }
-    };
-
-
-    void StartReplication(const std::string& master_addr) {
-        brpc::Channel channel;
-        brpc::ChannelOptions options;
-        options.protocol = "baidu_std";
-        options.connection_type = "single";
-        options.timeout_ms = 10000;
-        // options.idle_timeout_ms = -1;
-
-        if (channel.Init(master_addr.c_str(), &options) != 0) {
-            std::cerr << "Failed to init channel to master" << std::endl;
-            return;
-        }
-
-        ReplicationService_Stub stub(&channel);
-        brpc::Controller cntl;
-
-        brpc::StreamId stream;
-        brpc::StreamOptions stream_options;
-        StreamClientReceiver receiver;
-        stream_options.handler = &receiver;
-        if (brpc::StreamCreate(&stream, cntl, &stream_options) != 0) {
-            std::cerr << "Failed to start Sync stream" << std::endl;
-            return;
-        }
-
-        while (!brpc::IsAskedToQuit()) {
-            butil::IOBuf msg1;
-            Message message;
-            message.set_type(Message_MsgType_FULL_DATA);
-            std::string serialized_data;
-            if (!message.SerializeToString(&serialized_data)) {
-                LOG(ERROR) << "Failed to serialize message";
-                continue;
-            }
-            msg1.append(serialized_data);
-            CHECK_EQ(0, brpc::StreamWrite(stream, msg1));
-            butil::IOBuf msg2;
-            msg2.append("0123456789");
-            CHECK_EQ(0, brpc::StreamWrite(stream, msg2));
-            sleep(1);
         }
     }
-
 }

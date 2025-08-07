@@ -2,7 +2,7 @@
 // Created by fakzhao on 2025/8/6.
 //
 
-#include "aof_log.h"
+#include "aof.h"
 
 namespace blp {
     AOFLog::AOFLog(const std::string &filename) : filename_(filename) {

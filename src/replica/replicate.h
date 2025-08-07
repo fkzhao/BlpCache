@@ -8,5 +8,5 @@
 #include "replica/replication.pb.h"
 
 namespace blp {
-    void StartReplication(const std::string& master_addr);
+    void start_replica(char* host, uint16_t port);
 }

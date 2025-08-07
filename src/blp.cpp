@@ -12,7 +12,7 @@
 #include "common/config.h"
 #include "service/service.h"
 #include "common/sequence_number.h"
-#include "common/aof_log.h"
+#include "common/aof.h"
 #include "replica/server.h"
 #include "replica/replicate.h"
 
@@ -29,10 +29,10 @@ int main(int argc, char* argv[]) {
     std::cout <<"BLP Cache Start On: " << blp::config::port << std::endl;
 
     // init db
-    if (!blp::init_db()) {
-        fprintf(stderr, "error init db. \n");
-        return -1;
-    }
+    // if (!blp::init_db()) {
+    //     fprintf(stderr, "error init db. \n");
+    //     return -1;
+    // }
 
     // config brpc server
     // LOG(INFO) << "Starting Redis Service...";
@@ -49,33 +49,17 @@ int main(int argc, char* argv[]) {
     //     return -1;
     // }
     // LOG(INFO) << "Redis Service started on port " << blp::config::port;
+    // redis_server.RunUntilAskedToQuit();
     // std::thread t1([&]{ redis_server.RunUntilAskedToQuit(); });
-
-    if (blp::config::model == "replicate") {
+    if (blp::config::model == "master") {
+        std::thread t2([&]{ blp::start_replication_server(blp::config::replica_port); });
+        t2.join();
+    } else if (blp::config::model == "replicate") {
         LOG(INFO) << "Starting Replication Service...";
-        std::string *master_addr = new std::string("127.0.0.1:" + std::to_string(blp::config::replica_port));
-        std::thread t2([&]{ blp::StartReplication(*master_addr); });
-        // t1.join();
+        std::string host = "127.0.0.1";
+        std::thread t2([&]{ blp::start_replica(host.data(), blp::config::replica_port); });
         t2.join();
-    } else if (blp::config::model == "master") {
-        LOG(INFO) << "Starting Master Server...";
-        brpc::Server master_server;
-        blp::ReplicationServiceImpl replication_service_impl;
-        if (master_server.AddService(&replication_service_impl, brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
-            LOG(ERROR) << "Fail to add service";
-            return -1;
-        }
-        brpc::ServerOptions master_options;
-        master_options.idle_timeout_sec = -1;
-        if (master_server.Start(("127.0.0.1:" + std::to_string(blp::config::replica_port)).c_str(), &master_options) != 0) {
-            LOG(ERROR) << "Fail to start SyncServer";
-            return -1;
-        }
-        LOG(INFO) << "Starting Master Service on port " << blp::config::replica_port;
-        std::thread t2([&]{ master_server.RunUntilAskedToQuit(); });
-        // t1.join();
-        t2.join();
-    } else {
+    }  else {
         LOG(ERROR) << "Unknown model: " << blp::config::model;
         return -1;
     }
