@@ -137,7 +137,7 @@ namespace blp {
     bool init_db() {
         // Initialize LevelDB storage
         const auto storage = LevelDBWrapper::getInstance();
-        if (!storage->init("./db", 256, 128, 2000)) {
+        if (!storage->init(std::string(getenv("BLP_HOME")) + "/data", 256, 128, 2000)) {
             std::cerr << "Failed to initialize LevelDB" << std::endl;
             return false;
         }

@@ -57,9 +57,9 @@ namespace blp {
 class DataEntry;
 struct DataEntryDefaultTypeInternal;
 extern DataEntryDefaultTypeInternal _DataEntry_default_instance_;
-class SyncMessage;
-struct SyncMessageDefaultTypeInternal;
-extern SyncMessageDefaultTypeInternal _SyncMessage_default_instance_;
+class Message;
+struct MessageDefaultTypeInternal;
+extern MessageDefaultTypeInternal _Message_default_instance_;
 }  // namespace blp
 namespace google {
 namespace protobuf {
@@ -67,36 +67,68 @@ namespace protobuf {
 }  // namespace google
 
 namespace blp {
-enum SyncMessage_MsgType : int {
-  SyncMessage_MsgType_FULL_DATA = 0,
-  SyncMessage_MsgType_INCREMENT_DATA = 1,
-  SyncMessage_MsgType_FULL_SYNC_END = 2,
-  SyncMessage_MsgType_INCREMENT_SYNC_END = 3,
+enum DataEntry_DataType : int {
+  DataEntry_DataType_STRING = 0,
+  DataEntry_DataType_LIST = 1,
+  DataEntry_DataType_SET = 2,
+  DataEntry_DataType_HASH = 3,
+  DataEntry_DataType_ZSET = 4,
 };
 
-bool SyncMessage_MsgType_IsValid(int value);
-extern const uint32_t SyncMessage_MsgType_internal_data_[];
-constexpr SyncMessage_MsgType SyncMessage_MsgType_MsgType_MIN = static_cast<SyncMessage_MsgType>(0);
-constexpr SyncMessage_MsgType SyncMessage_MsgType_MsgType_MAX = static_cast<SyncMessage_MsgType>(3);
-constexpr int SyncMessage_MsgType_MsgType_ARRAYSIZE = 3 + 1;
+bool DataEntry_DataType_IsValid(int value);
+extern const uint32_t DataEntry_DataType_internal_data_[];
+constexpr DataEntry_DataType DataEntry_DataType_DataType_MIN = static_cast<DataEntry_DataType>(0);
+constexpr DataEntry_DataType DataEntry_DataType_DataType_MAX = static_cast<DataEntry_DataType>(4);
+constexpr int DataEntry_DataType_DataType_ARRAYSIZE = 4 + 1;
 const ::google::protobuf::EnumDescriptor*
-SyncMessage_MsgType_descriptor();
+DataEntry_DataType_descriptor();
 template <typename T>
-const std::string& SyncMessage_MsgType_Name(T value) {
-  static_assert(std::is_same<T, SyncMessage_MsgType>::value ||
+const std::string& DataEntry_DataType_Name(T value) {
+  static_assert(std::is_same<T, DataEntry_DataType>::value ||
                     std::is_integral<T>::value,
-                "Incorrect type passed to MsgType_Name().");
-  return SyncMessage_MsgType_Name(static_cast<SyncMessage_MsgType>(value));
+                "Incorrect type passed to DataType_Name().");
+  return DataEntry_DataType_Name(static_cast<DataEntry_DataType>(value));
 }
 template <>
-inline const std::string& SyncMessage_MsgType_Name(SyncMessage_MsgType value) {
-  return ::google::protobuf::internal::NameOfDenseEnum<SyncMessage_MsgType_descriptor,
+inline const std::string& DataEntry_DataType_Name(DataEntry_DataType value) {
+  return ::google::protobuf::internal::NameOfDenseEnum<DataEntry_DataType_descriptor,
+                                                 0, 4>(
+      static_cast<int>(value));
+}
+inline bool DataEntry_DataType_Parse(absl::string_view name, DataEntry_DataType* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<DataEntry_DataType>(
+      DataEntry_DataType_descriptor(), name, value);
+}
+enum Message_MsgType : int {
+  Message_MsgType_HEART_BEAT = 0,
+  Message_MsgType_FULL_DATA = 1,
+  Message_MsgType_PARTIAL_DATA = 2,
+  Message_MsgType_ACK = 3,
+};
+
+bool Message_MsgType_IsValid(int value);
+extern const uint32_t Message_MsgType_internal_data_[];
+constexpr Message_MsgType Message_MsgType_MsgType_MIN = static_cast<Message_MsgType>(0);
+constexpr Message_MsgType Message_MsgType_MsgType_MAX = static_cast<Message_MsgType>(3);
+constexpr int Message_MsgType_MsgType_ARRAYSIZE = 3 + 1;
+const ::google::protobuf::EnumDescriptor*
+Message_MsgType_descriptor();
+template <typename T>
+const std::string& Message_MsgType_Name(T value) {
+  static_assert(std::is_same<T, Message_MsgType>::value ||
+                    std::is_integral<T>::value,
+                "Incorrect type passed to MsgType_Name().");
+  return Message_MsgType_Name(static_cast<Message_MsgType>(value));
+}
+template <>
+inline const std::string& Message_MsgType_Name(Message_MsgType value) {
+  return ::google::protobuf::internal::NameOfDenseEnum<Message_MsgType_descriptor,
                                                  0, 3>(
       static_cast<int>(value));
 }
-inline bool SyncMessage_MsgType_Parse(absl::string_view name, SyncMessage_MsgType* value) {
-  return ::google::protobuf::internal::ParseNamedEnum<SyncMessage_MsgType>(
-      SyncMessage_MsgType_descriptor(), name, value);
+inline bool Message_MsgType_Parse(absl::string_view name, Message_MsgType* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<Message_MsgType>(
+      Message_MsgType_descriptor(), name, value);
 }
 
 // ===================================================================
@@ -252,12 +284,36 @@ class DataEntry final : public ::google::protobuf::Message
  public:
   ::google::protobuf::Metadata GetMetadata() const;
   // nested types ----------------------------------------------------
+  using DataType = DataEntry_DataType;
+  static constexpr DataType STRING = DataEntry_DataType_STRING;
+  static constexpr DataType LIST = DataEntry_DataType_LIST;
+  static constexpr DataType SET = DataEntry_DataType_SET;
+  static constexpr DataType HASH = DataEntry_DataType_HASH;
+  static constexpr DataType ZSET = DataEntry_DataType_ZSET;
+  static inline bool DataType_IsValid(int value) {
+    return DataEntry_DataType_IsValid(value);
+  }
+  static constexpr DataType DataType_MIN = DataEntry_DataType_DataType_MIN;
+  static constexpr DataType DataType_MAX = DataEntry_DataType_DataType_MAX;
+  static constexpr int DataType_ARRAYSIZE = DataEntry_DataType_DataType_ARRAYSIZE;
+  static inline const ::google::protobuf::EnumDescriptor* DataType_descriptor() {
+    return DataEntry_DataType_descriptor();
+  }
+  template <typename T>
+  static inline const std::string& DataType_Name(T value) {
+    return DataEntry_DataType_Name(value);
+  }
+  static inline bool DataType_Parse(absl::string_view name, DataType* value) {
+    return DataEntry_DataType_Parse(name, value);
+  }
 
   // accessors -------------------------------------------------------
   enum : int {
     kKeyFieldNumber = 2,
-    kValueFieldNumber = 3,
+    kValueFieldNumber = 5,
     kSequenceFieldNumber = 1,
+    kExpireFieldNumber = 4,
+    kTypeFieldNumber = 3,
   };
   // required string key = 2;
   bool has_key() const;
@@ -276,7 +332,7 @@ class DataEntry final : public ::google::protobuf::Message
   std::string* _internal_mutable_key();
 
   public:
-  // required string value = 3;
+  // required string value = 5;
   bool has_value() const;
   void clear_value() ;
   const std::string& value() const;
@@ -304,12 +360,34 @@ class DataEntry final : public ::google::protobuf::Message
   void _internal_set_sequence(::uint64_t value);
 
   public:
+  // optional uint64 expire = 4;
+  bool has_expire() const;
+  void clear_expire() ;
+  ::uint64_t expire() const;
+  void set_expire(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_expire() const;
+  void _internal_set_expire(::uint64_t value);
+
+  public:
+  // required .blp.DataEntry.DataType type = 3;
+  bool has_type() const;
+  void clear_type() ;
+  ::blp::DataEntry_DataType type() const;
+  void set_type(::blp::DataEntry_DataType value);
+
+  private:
+  ::blp::DataEntry_DataType _internal_type() const;
+  void _internal_set_type(::blp::DataEntry_DataType value);
+
+  public:
   // @@protoc_insertion_point(class_scope:blp.DataEntry)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
-      2, 3, 0,
+      3, 5, 1,
       30, 2>
       _table_;
 
@@ -332,6 +410,8 @@ class DataEntry final : public ::google::protobuf::Message
     ::google::protobuf::internal::ArenaStringPtr key_;
     ::google::protobuf::internal::ArenaStringPtr value_;
     ::uint64_t sequence_;
+    ::uint64_t expire_;
+    int type_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -339,31 +419,31 @@ class DataEntry final : public ::google::protobuf::Message
 };
 // -------------------------------------------------------------------
 
-class SyncMessage final : public ::google::protobuf::Message
-/* @@protoc_insertion_point(class_definition:blp.SyncMessage) */ {
+class Message final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:blp.Message) */ {
  public:
-  inline SyncMessage() : SyncMessage(nullptr) {}
-  ~SyncMessage() PROTOBUF_FINAL;
+  inline Message() : Message(nullptr) {}
+  ~Message() PROTOBUF_FINAL;
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-  void operator delete(SyncMessage* msg, std::destroying_delete_t) {
+  void operator delete(Message* msg, std::destroying_delete_t) {
     SharedDtor(*msg);
-    ::google::protobuf::internal::SizedDelete(msg, sizeof(SyncMessage));
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(Message));
   }
 #endif
 
   template <typename = void>
-  explicit PROTOBUF_CONSTEXPR SyncMessage(
+  explicit PROTOBUF_CONSTEXPR Message(
       ::google::protobuf::internal::ConstantInitialized);
 
-  inline SyncMessage(const SyncMessage& from) : SyncMessage(nullptr, from) {}
-  inline SyncMessage(SyncMessage&& from) noexcept
-      : SyncMessage(nullptr, std::move(from)) {}
-  inline SyncMessage& operator=(const SyncMessage& from) {
+  inline Message(const Message& from) : Message(nullptr, from) {}
+  inline Message(Message&& from) noexcept
+      : Message(nullptr, std::move(from)) {}
+  inline Message& operator=(const Message& from) {
     CopyFrom(from);
     return *this;
   }
-  inline SyncMessage& operator=(SyncMessage&& from) noexcept {
+  inline Message& operator=(Message&& from) noexcept {
     if (this == &from) return *this;
     if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
       InternalSwap(&from);
@@ -391,16 +471,16 @@ class SyncMessage final : public ::google::protobuf::Message
   static const ::google::protobuf::Reflection* GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const SyncMessage& default_instance() {
+  static const Message& default_instance() {
     return *internal_default_instance();
   }
-  static inline const SyncMessage* internal_default_instance() {
-    return reinterpret_cast<const SyncMessage*>(
-        &_SyncMessage_default_instance_);
+  static inline const Message* internal_default_instance() {
+    return reinterpret_cast<const Message*>(
+        &_Message_default_instance_);
   }
   static constexpr int kIndexInFileMessages = 1;
-  friend void swap(SyncMessage& a, SyncMessage& b) { a.Swap(&b); }
-  inline void Swap(SyncMessage* other) {
+  friend void swap(Message& a, Message& b) { a.Swap(&b); }
+  inline void Swap(Message* other) {
     if (other == this) return;
     if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
       InternalSwap(other);
@@ -408,7 +488,7 @@ class SyncMessage final : public ::google::protobuf::Message
       ::google::protobuf::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(SyncMessage* other) {
+  void UnsafeArenaSwap(Message* other) {
     if (other == this) return;
     ABSL_DCHECK(GetArena() == other->GetArena());
     InternalSwap(other);
@@ -416,13 +496,13 @@ class SyncMessage final : public ::google::protobuf::Message
 
   // implements Message ----------------------------------------------
 
-  SyncMessage* New(::google::protobuf::Arena* arena = nullptr) const {
-    return ::google::protobuf::Message::DefaultConstruct<SyncMessage>(arena);
+  Message* New(::google::protobuf::Arena* arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<Message>(arena);
   }
   using ::google::protobuf::Message::CopyFrom;
-  void CopyFrom(const SyncMessage& from);
+  void CopyFrom(const Message& from);
   using ::google::protobuf::Message::MergeFrom;
-  void MergeFrom(const SyncMessage& from) { SyncMessage::MergeImpl(*this, from); }
+  void MergeFrom(const Message& from) { Message::MergeImpl(*this, from); }
 
   private:
   static void MergeImpl(
@@ -464,18 +544,18 @@ class SyncMessage final : public ::google::protobuf::Message
   private:
   void SharedCtor(::google::protobuf::Arena* arena);
   static void SharedDtor(MessageLite& self);
-  void InternalSwap(SyncMessage* other);
+  void InternalSwap(Message* other);
  private:
   template <typename T>
   friend ::absl::string_view(
       ::google::protobuf::internal::GetAnyMessageName)();
-  static ::absl::string_view FullMessageName() { return "blp.SyncMessage"; }
+  static ::absl::string_view FullMessageName() { return "blp.Message"; }
 
  protected:
-  explicit SyncMessage(::google::protobuf::Arena* arena);
-  SyncMessage(::google::protobuf::Arena* arena, const SyncMessage& from);
-  SyncMessage(::google::protobuf::Arena* arena, SyncMessage&& from) noexcept
-      : SyncMessage(arena) {
+  explicit Message(::google::protobuf::Arena* arena);
+  Message(::google::protobuf::Arena* arena, const Message& from);
+  Message(::google::protobuf::Arena* arena, Message&& from) noexcept
+      : Message(arena) {
     *this = ::std::move(from);
   }
   const ::google::protobuf::internal::ClassData* GetClassData() const PROTOBUF_FINAL;
@@ -487,26 +567,26 @@ class SyncMessage final : public ::google::protobuf::Message
  public:
   ::google::protobuf::Metadata GetMetadata() const;
   // nested types ----------------------------------------------------
-  using MsgType = SyncMessage_MsgType;
-  static constexpr MsgType FULL_DATA = SyncMessage_MsgType_FULL_DATA;
-  static constexpr MsgType INCREMENT_DATA = SyncMessage_MsgType_INCREMENT_DATA;
-  static constexpr MsgType FULL_SYNC_END = SyncMessage_MsgType_FULL_SYNC_END;
-  static constexpr MsgType INCREMENT_SYNC_END = SyncMessage_MsgType_INCREMENT_SYNC_END;
+  using MsgType = Message_MsgType;
+  static constexpr MsgType HEART_BEAT = Message_MsgType_HEART_BEAT;
+  static constexpr MsgType FULL_DATA = Message_MsgType_FULL_DATA;
+  static constexpr MsgType PARTIAL_DATA = Message_MsgType_PARTIAL_DATA;
+  static constexpr MsgType ACK = Message_MsgType_ACK;
   static inline bool MsgType_IsValid(int value) {
-    return SyncMessage_MsgType_IsValid(value);
+    return Message_MsgType_IsValid(value);
   }
-  static constexpr MsgType MsgType_MIN = SyncMessage_MsgType_MsgType_MIN;
-  static constexpr MsgType MsgType_MAX = SyncMessage_MsgType_MsgType_MAX;
-  static constexpr int MsgType_ARRAYSIZE = SyncMessage_MsgType_MsgType_ARRAYSIZE;
+  static constexpr MsgType MsgType_MIN = Message_MsgType_MsgType_MIN;
+  static constexpr MsgType MsgType_MAX = Message_MsgType_MsgType_MAX;
+  static constexpr int MsgType_ARRAYSIZE = Message_MsgType_MsgType_ARRAYSIZE;
   static inline const ::google::protobuf::EnumDescriptor* MsgType_descriptor() {
-    return SyncMessage_MsgType_descriptor();
+    return Message_MsgType_descriptor();
   }
   template <typename T>
   static inline const std::string& MsgType_Name(T value) {
-    return SyncMessage_MsgType_Name(value);
+    return Message_MsgType_Name(value);
   }
   static inline bool MsgType_Parse(absl::string_view name, MsgType* value) {
-    return SyncMessage_MsgType_Parse(name, value);
+    return Message_MsgType_Parse(name, value);
   }
 
   // accessors -------------------------------------------------------
@@ -548,15 +628,15 @@ class SyncMessage final : public ::google::protobuf::Message
   ::blp::DataEntry* _internal_mutable_entry();
 
   public:
-  // required .blp.SyncMessage.MsgType type = 1;
+  // required .blp.Message.MsgType type = 1;
   bool has_type() const;
   void clear_type() ;
-  ::blp::SyncMessage_MsgType type() const;
-  void set_type(::blp::SyncMessage_MsgType value);
+  ::blp::Message_MsgType type() const;
+  void set_type(::blp::Message_MsgType value);
 
   private:
-  ::blp::SyncMessage_MsgType _internal_type() const;
-  void _internal_set_type(::blp::SyncMessage_MsgType value);
+  ::blp::Message_MsgType _internal_type() const;
+  void _internal_set_type(::blp::Message_MsgType value);
 
   public:
   // optional bool is_last_chunk = 4;
@@ -570,7 +650,7 @@ class SyncMessage final : public ::google::protobuf::Message
   void _internal_set_is_last_chunk(bool value);
 
   public:
-  // @@protoc_insertion_point(class_scope:blp.SyncMessage)
+  // @@protoc_insertion_point(class_scope:blp.Message)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
@@ -592,7 +672,7 @@ class SyncMessage final : public ::google::protobuf::Message
                           ::google::protobuf::Arena* arena);
     inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
                           ::google::protobuf::Arena* arena, const Impl_& from,
-                          const SyncMessage& from_msg);
+                          const Message& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::internal::ArenaStringPtr full_chunk_;
@@ -625,8 +705,8 @@ class ReplicationService : public ::google::protobuf::Service {
   static const ::google::protobuf::ServiceDescriptor* descriptor();
 
   virtual void Sync(::google::protobuf::RpcController* controller,
-                        const ::blp::SyncMessage* request,
-                        ::blp::SyncMessage* response,
+                        const ::blp::Message* request,
+                        ::blp::Message* response,
                         ::google::protobuf::Closure* done);
 
   // implements Service ----------------------------------------------
@@ -660,8 +740,8 @@ class ReplicationService_Stub final : public ReplicationService {
 
   // implements ReplicationService ------------------------------------------
   void Sync(::google::protobuf::RpcController* controller,
-                        const ::blp::SyncMessage* request,
-                        ::blp::SyncMessage* response,
+                        const ::blp::Message* request,
+                        ::blp::Message* response,
                         ::google::protobuf::Closure* done) override;
 
  private:
@@ -780,7 +860,64 @@ inline void DataEntry::set_allocated_key(std::string* value) {
   // @@protoc_insertion_point(field_set_allocated:blp.DataEntry.key)
 }
 
-// required string value = 3;
+// required .blp.DataEntry.DataType type = 3;
+inline bool DataEntry::has_type() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000010u) != 0;
+  return value;
+}
+inline void DataEntry::clear_type() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.type_ = 0;
+  _impl_._has_bits_[0] &= ~0x00000010u;
+}
+inline ::blp::DataEntry_DataType DataEntry::type() const {
+  // @@protoc_insertion_point(field_get:blp.DataEntry.type)
+  return _internal_type();
+}
+inline void DataEntry::set_type(::blp::DataEntry_DataType value) {
+  _internal_set_type(value);
+  _impl_._has_bits_[0] |= 0x00000010u;
+  // @@protoc_insertion_point(field_set:blp.DataEntry.type)
+}
+inline ::blp::DataEntry_DataType DataEntry::_internal_type() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return static_cast<::blp::DataEntry_DataType>(_impl_.type_);
+}
+inline void DataEntry::_internal_set_type(::blp::DataEntry_DataType value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  assert(::blp::DataEntry_DataType_IsValid(value));
+  _impl_.type_ = value;
+}
+
+// optional uint64 expire = 4;
+inline bool DataEntry::has_expire() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000008u) != 0;
+  return value;
+}
+inline void DataEntry::clear_expire() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.expire_ = ::uint64_t{0u};
+  _impl_._has_bits_[0] &= ~0x00000008u;
+}
+inline ::uint64_t DataEntry::expire() const {
+  // @@protoc_insertion_point(field_get:blp.DataEntry.expire)
+  return _internal_expire();
+}
+inline void DataEntry::set_expire(::uint64_t value) {
+  _internal_set_expire(value);
+  _impl_._has_bits_[0] |= 0x00000008u;
+  // @@protoc_insertion_point(field_set:blp.DataEntry.expire)
+}
+inline ::uint64_t DataEntry::_internal_expire() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.expire_;
+}
+inline void DataEntry::_internal_set_expire(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.expire_ = value;
+}
+
+// required string value = 5;
 inline bool DataEntry::has_value() const {
   bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
   return value;
@@ -851,58 +988,58 @@ inline void DataEntry::set_allocated_value(std::string* value) {
 
 // -------------------------------------------------------------------
 
-// SyncMessage
+// Message
 
-// required .blp.SyncMessage.MsgType type = 1;
-inline bool SyncMessage::has_type() const {
+// required .blp.Message.MsgType type = 1;
+inline bool Message::has_type() const {
   bool value = (_impl_._has_bits_[0] & 0x00000004u) != 0;
   return value;
 }
-inline void SyncMessage::clear_type() {
+inline void Message::clear_type() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.type_ = 0;
   _impl_._has_bits_[0] &= ~0x00000004u;
 }
-inline ::blp::SyncMessage_MsgType SyncMessage::type() const {
-  // @@protoc_insertion_point(field_get:blp.SyncMessage.type)
+inline ::blp::Message_MsgType Message::type() const {
+  // @@protoc_insertion_point(field_get:blp.Message.type)
   return _internal_type();
 }
-inline void SyncMessage::set_type(::blp::SyncMessage_MsgType value) {
+inline void Message::set_type(::blp::Message_MsgType value) {
   _internal_set_type(value);
   _impl_._has_bits_[0] |= 0x00000004u;
-  // @@protoc_insertion_point(field_set:blp.SyncMessage.type)
+  // @@protoc_insertion_point(field_set:blp.Message.type)
 }
-inline ::blp::SyncMessage_MsgType SyncMessage::_internal_type() const {
+inline ::blp::Message_MsgType Message::_internal_type() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return static_cast<::blp::SyncMessage_MsgType>(_impl_.type_);
+  return static_cast<::blp::Message_MsgType>(_impl_.type_);
 }
-inline void SyncMessage::_internal_set_type(::blp::SyncMessage_MsgType value) {
+inline void Message::_internal_set_type(::blp::Message_MsgType value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  assert(::blp::SyncMessage_MsgType_IsValid(value));
+  assert(::blp::Message_MsgType_IsValid(value));
   _impl_.type_ = value;
 }
 
 // optional .blp.DataEntry entry = 2;
-inline bool SyncMessage::has_entry() const {
+inline bool Message::has_entry() const {
   bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
   PROTOBUF_ASSUME(!value || _impl_.entry_ != nullptr);
   return value;
 }
-inline void SyncMessage::clear_entry() {
+inline void Message::clear_entry() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.entry_ != nullptr) _impl_.entry_->Clear();
   _impl_._has_bits_[0] &= ~0x00000002u;
 }
-inline const ::blp::DataEntry& SyncMessage::_internal_entry() const {
+inline const ::blp::DataEntry& Message::_internal_entry() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   const ::blp::DataEntry* p = _impl_.entry_;
   return p != nullptr ? *p : reinterpret_cast<const ::blp::DataEntry&>(::blp::_DataEntry_default_instance_);
 }
-inline const ::blp::DataEntry& SyncMessage::entry() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:blp.SyncMessage.entry)
+inline const ::blp::DataEntry& Message::entry() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:blp.Message.entry)
   return _internal_entry();
 }
-inline void SyncMessage::unsafe_arena_set_allocated_entry(::blp::DataEntry* value) {
+inline void Message::unsafe_arena_set_allocated_entry(::blp::DataEntry* value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.entry_);
@@ -913,9 +1050,9 @@ inline void SyncMessage::unsafe_arena_set_allocated_entry(::blp::DataEntry* valu
   } else {
     _impl_._has_bits_[0] &= ~0x00000002u;
   }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:blp.SyncMessage.entry)
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:blp.Message.entry)
 }
-inline ::blp::DataEntry* SyncMessage::release_entry() {
+inline ::blp::DataEntry* Message::release_entry() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   _impl_._has_bits_[0] &= ~0x00000002u;
@@ -934,16 +1071,16 @@ inline ::blp::DataEntry* SyncMessage::release_entry() {
   }
   return released;
 }
-inline ::blp::DataEntry* SyncMessage::unsafe_arena_release_entry() {
+inline ::blp::DataEntry* Message::unsafe_arena_release_entry() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:blp.SyncMessage.entry)
+  // @@protoc_insertion_point(field_release:blp.Message.entry)
 
   _impl_._has_bits_[0] &= ~0x00000002u;
   ::blp::DataEntry* temp = _impl_.entry_;
   _impl_.entry_ = nullptr;
   return temp;
 }
-inline ::blp::DataEntry* SyncMessage::_internal_mutable_entry() {
+inline ::blp::DataEntry* Message::_internal_mutable_entry() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.entry_ == nullptr) {
     auto* p = ::google::protobuf::Message::DefaultConstruct<::blp::DataEntry>(GetArena());
@@ -951,13 +1088,13 @@ inline ::blp::DataEntry* SyncMessage::_internal_mutable_entry() {
   }
   return _impl_.entry_;
 }
-inline ::blp::DataEntry* SyncMessage::mutable_entry() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline ::blp::DataEntry* Message::mutable_entry() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   _impl_._has_bits_[0] |= 0x00000002u;
   ::blp::DataEntry* _msg = _internal_mutable_entry();
-  // @@protoc_insertion_point(field_mutable:blp.SyncMessage.entry)
+  // @@protoc_insertion_point(field_mutable:blp.Message.entry)
   return _msg;
 }
-inline void SyncMessage::set_allocated_entry(::blp::DataEntry* value) {
+inline void Message::set_allocated_entry(::blp::DataEntry* value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -975,54 +1112,54 @@ inline void SyncMessage::set_allocated_entry(::blp::DataEntry* value) {
   }
 
   _impl_.entry_ = reinterpret_cast<::blp::DataEntry*>(value);
-  // @@protoc_insertion_point(field_set_allocated:blp.SyncMessage.entry)
+  // @@protoc_insertion_point(field_set_allocated:blp.Message.entry)
 }
 
 // optional bytes full_chunk = 3;
-inline bool SyncMessage::has_full_chunk() const {
+inline bool Message::has_full_chunk() const {
   bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
   return value;
 }
-inline void SyncMessage::clear_full_chunk() {
+inline void Message::clear_full_chunk() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.full_chunk_.ClearToEmpty();
   _impl_._has_bits_[0] &= ~0x00000001u;
 }
-inline const std::string& SyncMessage::full_chunk() const
+inline const std::string& Message::full_chunk() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:blp.SyncMessage.full_chunk)
+  // @@protoc_insertion_point(field_get:blp.Message.full_chunk)
   return _internal_full_chunk();
 }
 template <typename Arg_, typename... Args_>
-inline PROTOBUF_ALWAYS_INLINE void SyncMessage::set_full_chunk(Arg_&& arg,
+inline PROTOBUF_ALWAYS_INLINE void Message::set_full_chunk(Arg_&& arg,
                                                      Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000001u;
   _impl_.full_chunk_.SetBytes(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:blp.SyncMessage.full_chunk)
+  // @@protoc_insertion_point(field_set:blp.Message.full_chunk)
 }
-inline std::string* SyncMessage::mutable_full_chunk() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline std::string* Message::mutable_full_chunk() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   std::string* _s = _internal_mutable_full_chunk();
-  // @@protoc_insertion_point(field_mutable:blp.SyncMessage.full_chunk)
+  // @@protoc_insertion_point(field_mutable:blp.Message.full_chunk)
   return _s;
 }
-inline const std::string& SyncMessage::_internal_full_chunk() const {
+inline const std::string& Message::_internal_full_chunk() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.full_chunk_.Get();
 }
-inline void SyncMessage::_internal_set_full_chunk(const std::string& value) {
+inline void Message::_internal_set_full_chunk(const std::string& value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000001u;
   _impl_.full_chunk_.Set(value, GetArena());
 }
-inline std::string* SyncMessage::_internal_mutable_full_chunk() {
+inline std::string* Message::_internal_mutable_full_chunk() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_._has_bits_[0] |= 0x00000001u;
   return _impl_.full_chunk_.Mutable( GetArena());
 }
-inline std::string* SyncMessage::release_full_chunk() {
+inline std::string* Message::release_full_chunk() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:blp.SyncMessage.full_chunk)
+  // @@protoc_insertion_point(field_release:blp.Message.full_chunk)
   if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
     return nullptr;
   }
@@ -1033,7 +1170,7 @@ inline std::string* SyncMessage::release_full_chunk() {
   }
   return released;
 }
-inline void SyncMessage::set_allocated_full_chunk(std::string* value) {
+inline void Message::set_allocated_full_chunk(std::string* value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
     _impl_._has_bits_[0] |= 0x00000001u;
@@ -1044,33 +1181,33 @@ inline void SyncMessage::set_allocated_full_chunk(std::string* value) {
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.full_chunk_.IsDefault()) {
     _impl_.full_chunk_.Set("", GetArena());
   }
-  // @@protoc_insertion_point(field_set_allocated:blp.SyncMessage.full_chunk)
+  // @@protoc_insertion_point(field_set_allocated:blp.Message.full_chunk)
 }
 
 // optional bool is_last_chunk = 4;
-inline bool SyncMessage::has_is_last_chunk() const {
+inline bool Message::has_is_last_chunk() const {
   bool value = (_impl_._has_bits_[0] & 0x00000008u) != 0;
   return value;
 }
-inline void SyncMessage::clear_is_last_chunk() {
+inline void Message::clear_is_last_chunk() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.is_last_chunk_ = false;
   _impl_._has_bits_[0] &= ~0x00000008u;
 }
-inline bool SyncMessage::is_last_chunk() const {
-  // @@protoc_insertion_point(field_get:blp.SyncMessage.is_last_chunk)
+inline bool Message::is_last_chunk() const {
+  // @@protoc_insertion_point(field_get:blp.Message.is_last_chunk)
   return _internal_is_last_chunk();
 }
-inline void SyncMessage::set_is_last_chunk(bool value) {
+inline void Message::set_is_last_chunk(bool value) {
   _internal_set_is_last_chunk(value);
   _impl_._has_bits_[0] |= 0x00000008u;
-  // @@protoc_insertion_point(field_set:blp.SyncMessage.is_last_chunk)
+  // @@protoc_insertion_point(field_set:blp.Message.is_last_chunk)
 }
-inline bool SyncMessage::_internal_is_last_chunk() const {
+inline bool Message::_internal_is_last_chunk() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.is_last_chunk_;
 }
-inline void SyncMessage::_internal_set_is_last_chunk(bool value) {
+inline void Message::_internal_set_is_last_chunk(bool value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.is_last_chunk_ = value;
 }
@@ -1087,10 +1224,16 @@ namespace google {
 namespace protobuf {
 
 template <>
-struct is_proto_enum<::blp::SyncMessage_MsgType> : std::true_type {};
+struct is_proto_enum<::blp::DataEntry_DataType> : std::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor<::blp::SyncMessage_MsgType>() {
-  return ::blp::SyncMessage_MsgType_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor<::blp::DataEntry_DataType>() {
+  return ::blp::DataEntry_DataType_descriptor();
+}
+template <>
+struct is_proto_enum<::blp::Message_MsgType> : std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor<::blp::Message_MsgType>() {
+  return ::blp::Message_MsgType_descriptor();
 }
 
 }  // namespace protobuf

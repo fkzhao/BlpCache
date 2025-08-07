@@ -35,6 +35,7 @@ namespace blp {
         DECLARE_Int16(port);
         DECLARE_Int16(replica_port);
         DECLARE_String(replica_host);
+        DECLARE_String(model);
 
 
         extern std::mutex custom_conf_lock;

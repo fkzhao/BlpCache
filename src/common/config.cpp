@@ -18,6 +18,7 @@ namespace blp::config {
     DEFINE_Int16(port, "6479");
     DEFINE_Int16(replica_port, "6480");
     DEFINE_String(replicate_host, "127.0.0.1");
+    DEFINE_String(model, "master");
 
     std::map<std::string, Register::Field> *Register::_s_field_map = nullptr;
 

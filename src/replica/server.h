@@ -4,35 +4,50 @@
 
 #pragma once
 
-#include <brpc/server.h>
+#include <brpc/stream.h>
 
 
 #include "replica/replication.pb.h"
 
+
 namespace blp {
+
+    class StreamReceiver : public brpc::StreamInputHandler {
+    public:
+        virtual int on_received_messages(brpc::StreamId id,
+                                         butil::IOBuf *const messages[],
+                                         size_t size) {
+            std::ostringstream os;
+            for (size_t i = 0; i < size; ++i) {
+                os << "msg[" << i << "]=" << *messages[i];
+            }
+            LOG(INFO) << "Received from Stream=" << id << ": " << os.str();
+            return 0;
+        }
+        virtual void on_idle_timeout(brpc::StreamId id) {
+            LOG(INFO) << "Stream=" << id << " has no data transmission for a while";
+        }
+        virtual void on_closed(brpc::StreamId id) {
+            LOG(INFO) << "Stream=" << id << " is closed";
+        }
+
+    };
+
     class ReplicationServiceImpl final : public ReplicationService {
     public:
-        ReplicationServiceImpl(const std::string& aof_file_path);
-        ~ReplicationServiceImpl();
+        ReplicationServiceImpl() : _sd(brpc::INVALID_STREAM_ID) {}
 
-        // bRPC流接口实现
-        void Sync(google::protobuf::RpcController* cntl_base,
-                  google::protobuf::Closure* done);
-
-        // 向所有连接推送增量数据
-        void PushIncrementalData(const DataEntry& entry);
-
-    private:
-        struct ClientStream {
-            brpc::StreamId stream_id;
+        ~ReplicationServiceImpl() override {
+            brpc::StreamClose(_sd);
         };
 
-        void BroadcastIncrement(const DataEntry& entry);
+        void Sync(google::protobuf::RpcController* controller,
+                      const Message* request,
+                      Message* response,
+                      google::protobuf::Closure* done);
 
-        std::string aof_file_path_;
-        std::mutex clients_mutex_;
-        std::vector<ClientStream> clients_;
-
-        std::atomic<bool> stop_;
+    private:
+        StreamReceiver _receiver;
+        brpc::StreamId _sd;
     };
 }

@@ -3,25 +3,33 @@ option cc_generic_services = true;
 package blp;
 
 message DataEntry {
+  enum DataType {
+    STRING = 0;
+    LIST = 1;
+    SET = 2;
+    HASH = 3;
+    ZSET = 4;
+  }
   required uint64 sequence = 1;
   required string key = 2;
-  required string value = 3;
+  required DataType type = 3; // data type
+  optional uint64 expire = 4; // expiration time in seconds, 0 means no
+  required string value = 5;
 }
 
-message SyncMessage {
+message Message {
   enum MsgType {
-    FULL_DATA = 0;       // AOF file trunk
-    INCREMENT_DATA = 1;  // incremental data
-    FULL_SYNC_END = 2;   // full sync end
-    INCREMENT_SYNC_END = 3; // incremental sync end
+    HEART_BEAT = 0; // heartbeat message
+    FULL_DATA = 1;       // RDB file trunk
+    PARTIAL_DATA = 2;  // incremental data
+    ACK = 3;   // full sync data end
   }
   required MsgType type = 1;
-
   optional DataEntry entry = 2;      // incremental data
-  optional bytes full_chunk = 3;     // full AOF file chunk
+  optional bytes full_chunk = 3;     // full RDB file chunk
   optional bool is_last_chunk = 4;   // flag to indicate if this is the last chunk of full data
 }
 
 service ReplicationService {
-  rpc Sync(stream SyncMessage) returns (stream SyncMessage);
+  rpc Sync(stream Message) returns (stream Message);
 }

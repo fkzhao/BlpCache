@@ -12,8 +12,8 @@ namespace blp {
         std::lock_guard<std::mutex> lock(mutex_);
         std::ofstream ofs(filename_, std::ios::binary | std::ios::app);
 
-        uint32_t key_len = key.size();
-        uint32_t value_len = value.size();
+        const uint32_t key_len = key.size();
+        const uint32_t value_len = value.size();
 
         ofs.write(reinterpret_cast<const char *>(&sequence), sizeof(sequence));
         ofs.write(reinterpret_cast<const char *>(&key_len), sizeof(key_len));

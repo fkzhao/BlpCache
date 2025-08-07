@@ -49,39 +49,31 @@ namespace blp {
         ReplicationService_Stub stub(&channel);
         brpc::Controller cntl;
 
-        brpc::StreamId stream_id;
+        brpc::StreamId stream;
         brpc::StreamOptions stream_options;
         StreamClientReceiver receiver;
         stream_options.handler = &receiver;
-        if (brpc::StreamCreate(&stream_id, cntl, &stream_options) != 0) {
+        if (brpc::StreamCreate(&stream, cntl, &stream_options) != 0) {
             std::cerr << "Failed to start Sync stream" << std::endl;
             return;
         }
+
         while (!brpc::IsAskedToQuit()) {
+            butil::IOBuf msg1;
+            Message message;
+            message.set_type(Message_MsgType_FULL_DATA);
+            std::string serialized_data;
+            if (!message.SerializeToString(&serialized_data)) {
+                LOG(ERROR) << "Failed to serialize message";
+                continue;
+            }
+            msg1.append(serialized_data);
+            CHECK_EQ(0, brpc::StreamWrite(stream, msg1));
+            butil::IOBuf msg2;
+            msg2.append("0123456789");
+            CHECK_EQ(0, brpc::StreamWrite(stream, msg2));
             sleep(1);
         }
-
-        // std::ofstream aof_file("replica_data.aof", std::ios::binary | std::ios::trunc);
-        //
-        // SyncMessage msg;
-        // while (receiver.Read(&msg)) {
-        //     if (msg.type() == SyncMessage::FULL_DATA) {
-        //         aof_file.write(msg.full_chunk().data(), msg.full_chunk().size());
-        //         std::cout << "Received AOF chunk, size=" << msg.full_chunk().size() << std::endl;
-        //         if (msg.is_last_chunk()) {
-        //             std::cout << "Full AOF sync completed." << std::endl;
-        //             // 可以在这里加载数据到内存或DB
-        //         }
-        //     } else if (msg.type() == SyncMessage::INCREMENT_DATA) {
-        //         const auto& entry = msg.entry();
-        //         std::cout << "Received increment data: seq=" << entry.sequence()
-        //                   << ", key=" << entry.key()
-        //                   << ", value=" << entry.value() << std::endl;
-        //
-        //         // TODO: 写入本地AOF或内存DB
-        //     }
-        // }
-        // std::cout << "Sync stream closed." << std::endl;
     }
 
 }
