@@ -7,5 +7,8 @@
 #include <brpc/channel.h>
 
 namespace blp {
-    void start_replica(char* host, uint16_t port);
+    class ReplicationClient {
+    public:
+        static static void startReplica(char* host, uint16_t port);
+    };
 }

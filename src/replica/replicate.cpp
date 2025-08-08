@@ -6,12 +6,13 @@
 #include <thread>
 #include "common/socket_utils.h"
 #include "protocol.h"
+#include "core/db.h"
 
 namespace blp {
-    std::atomic<bool> r_running(true);
 
-    void start_replica(char *host, uint16_t port) {
-        while (r_running) {
+    void ReplicationClient::startReplica(char *host, uint16_t port) {
+        auto db = LevelDBWrapper::getInstance();
+        while (true) {
             try {
                 int sockfd = SocketUtils::create_client_socket(host, port);
                 std::cout << "[Replica] Connected to Master at " << host << ":" << port << std::endl;
@@ -20,37 +21,27 @@ namespace blp {
                 heartbeat.detach();
 
                 //
-                while (r_running) {
-                    MessageHeader header{};
-                    if (!SocketUtils::recv_all(sockfd, &header, sizeof(header))) {
-                        std::cerr << "[Replica] Failed to receive header, disconnecting...\n";
-                        break;
-                    }
-                    header.from_network_order();
-
-                    if (header.type == ACK) {
-                        std::cout << "[Replica] Received ACK from Master, starting sync...\n";
-                        continue;
-                    }
-
-                    std::string payload(header.payload_len, 0);
-                    if (!SocketUtils::recv_all(sockfd, payload.data(), header.payload_len)) {
-                        std::cerr << "[Replica] Failed to receive payload, disconnecting...\n";
-                        break;
-                    }
+                while (true) {
+                    Message header;
+                    Message::recvFromSocket(sockfd,header);
 
                     if (header.type == FULL_SYNC) {
                         std::cout << "[Replica] Receiving FULL_SYNC chunk offset " << header.offset << " size " << header.
-                                payload_len << std::endl;
+                                len << std::endl;
                     } else if (header.type == INCR_SYNC) {
                         std::cout << "[Replica] Receiving INCR_SYNC offset " << header.offset << " size " << header.
-                                payload_len << std::endl;;
+                                len << std::endl;;
+                        DataEntity entry;
+                        header.toDataEntity(entry);
+                        bool res = db->put(entry.key(), entry.value());
+                        std::cout << "[Replica] Writing data entry to DB: sequence " << entry.sequence()
+                                  << ", key " << entry.key() << ", value " << entry.value() << " res " << res << std::endl;
                     } else if (header.type == HEARTBEAT) {
                         std::cout << "[Replica] Receiving HEARTBEAT offset " << header.offset << " size " << header.
-                               payload_len << std::endl;
+                               len << std::endl;
                     } else if (header.type == ACK) {
                         std::cout << "[Replica] Receiving ACK offset " << header.offset << " size " << header.
-                               payload_len << std::endl;;
+                               len << std::endl;;
                     } else {
                         std::cerr << "[Replica] Unknown message type: " << int(header.type) << std::endl;
                     }

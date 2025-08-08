@@ -12,14 +12,12 @@
 #include <cstring>
 
 #include "common/socket_utils.h"
+#include "common/ring_buffer.h"
+#include "protocol.h"
 
 namespace blp {
     constexpr size_t CHUNK_SIZE = 4096;
-
-    std::atomic<bool> s_running{true};
-    std::vector<int> replicas;
-    std::mutex replica_mutex;
-
+    auto &buffer = RingBuffer::getInstance();
 
     void send_full_sync(int client_fd) {
         uint64_t total_size = 100;
@@ -32,13 +30,12 @@ namespace blp {
             std::cerr << "Replica disconnected or error.\n";
         }
         auto last_heartbeat_time = std::chrono::steady_clock::now();
-        while (s_running) {
-            MessageHeader header{};
-            if (!SocketUtils::recv_all(client_fd, &header, sizeof(header))) {
+        while (true) {
+            Message header;
+            if (!header.recvFromSocket(client_fd, header)) {
                 std::cerr << "[Master] Failed to receive header, disconnecting...\n";
                 break;
             }
-            header.from_network_order();
             if (header.type == FULL_SYNC) {
                 std::cout << "[Master] Sending FULL_SYNC to replica\n";
                 send_full_sync(client_fd);
@@ -65,29 +62,37 @@ namespace blp {
         std::cout << "[Master] Replica closed: FD " << client_fd << "\n";
     }
 
-    void simulate_data_append() {
-        int counter = 1;
-        while (s_running) {
-            std::string data = "SET key" + std::to_string(counter) + " value" + std::to_string(counter) + "\n";
-            std::cout << "[Master] Appended: " << data;
-            counter++;
-            std::this_thread::sleep_for(std::chrono::seconds(3));
+    void simulate_data_append(int client_fd) {
+        while (true) {
+            const auto item = buffer.pop();
+            if (!item.has_value()) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                continue; // No data to send, wait for more
+            }
+            const auto& dataEntity = item.value();
+            std::cout << "[Master] Simulating data append: sequence " << dataEntity.sequence()
+                      << ", key " << dataEntity.key() << ", value " << dataEntity.value() << "\n";
+            if (Message msg =  Message::fromDataEntity(INCR_SYNC, dataEntity); !msg.sendToSocket(client_fd)) {
+                std::cerr << "[Master] Failed to send data to replica, disconnecting...\n";
+                break;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
 
-    void start_replication_server(uint16_t port) {
+    void ReplicationServer::startServer(const uint16_t port) const {
         int server_fd = SocketUtils::create_server_socket(port);
         std::cout << "[Master] Listening on port " << port << "...\n";
 
-        std::thread data_thread(simulate_data_append);
 
-        while (s_running) {
+        while (running) {
             int client_fd = SocketUtils::accept_client(server_fd);
             std::thread t(handle_replica, client_fd);
             t.detach();
+            std::thread data_thread(simulate_data_append, client_fd);
+            data_thread.detach();
         }
 
-        data_thread.join();
         close(server_fd);
     }
 }

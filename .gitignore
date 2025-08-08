@@ -107,3 +107,4 @@ coverage/
 LOCK
 CURRENT
 MANIFEST-*
+/data

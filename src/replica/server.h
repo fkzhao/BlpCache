@@ -15,6 +15,13 @@
 
 
 namespace blp {
-    void start_replication_server(uint16_t port);
+    class ReplicationServer {
+    public:
+        void startServer(uint16_t port) const;
+    private:
+        std::atomic<bool> running{true};
+        std::vector<int> replicas;
+        std::mutex replica_mutex;
+    };
 
 }

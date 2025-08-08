@@ -12,9 +12,9 @@
 #include "common/config.h"
 #include "service/service.h"
 #include "common/sequence_number.h"
-#include "common/aof.h"
 #include "replica/server.h"
 #include "replica/replicate.h"
+#include "common/ring_buffer.h"
 
 int main(int argc, char* argv[]) {
     google::ParseCommandLineFlags(&argc, &argv, true);
@@ -52,12 +52,16 @@ int main(int argc, char* argv[]) {
 
     //
     if (blp::config::model == "master") {
-        std::thread master_server([&]{ blp::start_replication_server(blp::config::replica_port); });
-        master_server.detach();
-    } else if (blp::config::model == "replicate") {
         LOG(INFO) << "Starting Replication Service...";
         std::string host = "127.0.0.1";
-        std::thread replica_client([&]{ blp::start_replica(host.data(), blp::config::replica_port); });
+        auto replicationServer = blp::ReplicationServer();
+        std::thread master_server([&]{ replicationServer.startServer(blp::config::replica_port); });
+        master_server.detach();
+    } else if (blp::config::model == "replicate") {
+        LOG(INFO) << "Starting Replication Client...";
+        std::string host = "127.0.0.1";
+        auto replicationClient = blp::ReplicationClient();
+        std::thread replica_client([&]{ replicationClient.startReplica(host.data(), blp::config::replica_port); });
         replica_client.detach();
     }  else {
         LOG(ERROR) << "Unknown model: " << blp::config::model;

@@ -4,11 +4,16 @@
 
 #include "cmd_set.h"
 #include "common/config.h"
+#include "common/ring_buffer.h"
+#include "replica/protocol.h"
+
 namespace blp {
     brpc::RedisCommandHandlerResult SetCommandHandler::Run(brpc::RedisConnContext *ctx,
                                                            const std::vector<butil::StringPiece> &args,
                                                            brpc::RedisReply *output,
                                                            bool /*flush_batched*/) {
+        auto &buffer = RingBuffer::getInstance();
+
         if (blp::config::model != "master") {
             output->FormatError("slaver can not run 'set' command");
             return brpc::REDIS_CMD_HANDLED;
@@ -32,6 +37,8 @@ namespace blp {
             output->FormatError("Failed to set key '%s'", key.c_str());
             return brpc::REDIS_CMD_HANDLED;
         }
+
+        buffer.push(DataEntity{100000, key, value});
         output->SetStatus("OK");
         return brpc::REDIS_CMD_HANDLED;
     }
