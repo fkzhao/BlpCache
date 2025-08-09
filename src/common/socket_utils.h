@@ -19,5 +19,7 @@ namespace blp {
 
         static bool send_all(int sockfd, const void* buffer, size_t length);
         static bool recv_all(int sockfd, void* buffer, size_t length);
+        static bool recv_all_with_event(int epoll_fd, int sockfd, void* buffer, size_t length, int timeout_ms);
+
     };
 }
