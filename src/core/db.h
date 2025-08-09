@@ -15,19 +15,25 @@ namespace blp {
     public:
 
         // initialize the database with the specified path and options
-        bool init(const std::string& dbPath, size_t cacheSizeMB = 128, size_t writeBufferSizeMB = 64, int maxOpenFiles = 1000) const;
+        [[nodiscard]] bool init(const std::string& dbPath, size_t cacheSizeMB = 128, size_t writeBufferSizeMB = 64, int maxOpenFiles = 1000) const;
 
         // put a key-value pair into the database
-        bool put(const std::string& key, const std::string& value) const;
+        [[nodiscard]] bool put(const std::string& key, const std::string& value) const;
 
         // get a value by key from the database
         bool get(const std::string& key, std::string* value) const;
 
         // check if a key exists in the database
-        bool remove(const std::string& key) const;
+        [[nodiscard]] bool remove(const std::string& key) const;
 
         // check if a key exists in the database
         bool writeBatch(leveldb::WriteBatch &batch) const;
+
+        //
+        [[nodiscard]] int64_t ttl(const std::string& key) const;
+
+        //
+        [[nodiscard]] bool expire(const std::string& key, const uint64_t ts) const;
 
         // get the underlying leveldb database instance
         [[nodiscard]] const leveldb::Snapshot* createSnapshot() const;
@@ -45,6 +51,7 @@ namespace blp {
         class Impl;
         std::unique_ptr<Impl> impl_;
         aof::Aof &aof_;
+        void ttl_cleaner() const;
     };
 
     LevelDBWrapper* init_db(const std::string &db_path, aof::Aof &aof);

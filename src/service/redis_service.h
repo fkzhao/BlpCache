@@ -20,6 +20,10 @@ namespace blp {
 
         [[nodiscard]] bool Del(const std::string &key) const;
 
+        [[nodiscard]] int64_t Ttl(const std::string &key) const;
+
+        [[nodiscard]] bool Expire(const std::string &key, uint64_t ts) const;
+
         void AddCommandHandler(const std::string& command, std::unique_ptr<brpc::RedisCommandHandler> handler);
 
     private:

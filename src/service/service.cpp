@@ -10,6 +10,8 @@
 #include "service/cmd_set.h"
 #include "service/cmd_auth.h"
 #include "service/cmd_del.h"
+#include "service/cmd_ttl.h"
+#include "service/cmd_expire.h"
 #include "core/db.h"
 
 namespace blp {
@@ -33,6 +35,14 @@ namespace blp {
         // del command handler
         std::unique_ptr<CommandHandler>  del_handler = std::make_unique<DelCommandHandler>(redis_service_impl);
         redis_service_impl->AddCommandHandler("del", std::move(del_handler));
+
+        // ttl command handler
+        std::unique_ptr<CommandHandler>  ttl_handler = std::make_unique<TtlCommandHandler>(redis_service_impl);
+        redis_service_impl->AddCommandHandler("ttl", std::move(ttl_handler));
+
+        // expire command handler
+        std::unique_ptr<CommandHandler>  expire_handler = std::make_unique<ExpireCommandHandler>(redis_service_impl);
+        redis_service_impl->AddCommandHandler("expire", std::move(expire_handler));
 
         return redis_service_impl;
     }

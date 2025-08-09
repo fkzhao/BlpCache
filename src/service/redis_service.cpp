@@ -42,6 +42,14 @@ namespace blp {
         return true;
     }
 
+    int64_t RedisServiceImpl::Ttl(const std::string &key) const {
+        return db_->ttl(key);
+    }
+
+    bool RedisServiceImpl::Expire(const std::string &key, uint64_t ts) const {
+        return db_->expire(key, ts); // Set expiration to 0 means delete the key
+    }
+
     void RedisServiceImpl::AddCommandHandler(const std::string &command, std::unique_ptr<brpc::RedisCommandHandler> handler) {
         command_handlers_[command] = std::move(handler);
         RedisService::AddCommandHandler(command, command_handlers_[command].get());
