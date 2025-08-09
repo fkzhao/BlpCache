@@ -138,7 +138,7 @@ namespace blp {
         close(kq);
         return true;
 #else
-        int epoll_fd = epoll_create(0);
+        int epoll_fd = epoll_create1(0);
         struct epoll_event ev;
         ev.events = EPOLLIN;
         ev.data.fd = sockfd;
