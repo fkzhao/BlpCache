@@ -6,12 +6,16 @@
 #include "core/db.h"
 
 namespace blp {
-    RedisServiceImpl::RedisServiceImpl() {
-
+    RedisServiceImpl::RedisServiceImpl(LevelDBWrapper *db) {
+        db_ = db;
+        if (!db_) {
+            LOG(ERROR) << "Failed to initialize RedisServiceImpl: db is null";
+            throw std::runtime_error("Database not initialized");
+        }
     }
 
     bool RedisServiceImpl::Set(const std::string &key, const std::string &value) const {
-        if (!_db->put(key, value)) {
+        if (!db_->put(key, value)) {
             LOG(ERROR) << "Failed to set key in storage";
             return false;
         }
@@ -27,11 +31,11 @@ namespace blp {
     }
 
     bool RedisServiceImpl::Get(const std::string &key, std::string *value) const {
-        return _db->get(key, value);
+        return db_->get(key, value);
     }
 
     bool RedisServiceImpl::Del(const std::string &key) const {
-        if (! _db->remove(key)) {
+        if (! db_->remove(key)) {
             LOG(ERROR) << "Failed to delete key in storage";
             return false;
         }

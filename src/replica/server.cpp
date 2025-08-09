@@ -4,20 +4,15 @@
 
 #include "server.h"
 #include <unistd.h>
-#include <fcntl.h>
 #include <fstream>
 #include <iostream>
-#include <sys/socket.h>
 #include <arpa/inet.h>
-#include <cstring>
 
 #include "common/socket_utils.h"
-#include "common/ring_buffer.h"
 #include "protocol.h"
 
 namespace blp {
     constexpr size_t CHUNK_SIZE = 4096;
-    auto &buffer = RingBuffer::getInstance();
 
     void send_full_sync(int client_fd) {
         uint64_t total_size = 100;
@@ -62,24 +57,6 @@ namespace blp {
         std::cout << "[Master] Replica closed: FD " << client_fd << "\n";
     }
 
-    void simulate_data_append(int client_fd) {
-        while (true) {
-            const auto item = buffer.pop();
-            if (!item.has_value()) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                continue; // No data to send, wait for more
-            }
-            const auto& dataEntity = item.value();
-            std::cout << "[Master] Simulating data append: sequence " << dataEntity.sequence()
-                      << ", key " << dataEntity.key() << ", value " << dataEntity.value() << "\n";
-            if (Message msg =  Message::fromDataEntity(INCR_SYNC, dataEntity); !msg.sendToSocket(client_fd)) {
-                std::cerr << "[Master] Failed to send data to replica, disconnecting...\n";
-                break;
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
-    }
-
     void ReplicationServer::startServer(const uint16_t port) const {
         int server_fd = SocketUtils::create_server_socket(port);
         std::cout << "[Master] Listening on port " << port << "...\n";
@@ -87,10 +64,43 @@ namespace blp {
 
         while (running) {
             int client_fd = SocketUtils::accept_client(server_fd);
+            aof_.registerListener([&]() {
+                uint64_t offset_to_read = aof_.getCurrentOffset();
+                const bool res = aof_.readCommandsFromOffset(offset_to_read,
+                                                             [offset_to_read, client_fd](
+                                                         const std::vector<std::string> &parts) {
+                                                                 if (parts.empty()) return;
+                                                                 std::cout << "[LISTENER] Received command: ";
+                                                                 for (const auto &part: parts) {
+                                                                     std::cout << part << " ";
+                                                                 }
+                                                                 std::cout << "\n";
+                                                                 std::string cmd = parts[0];
+                                                                 DataEntity dataEntity;
+                                                                 dataEntity.setSequence(offset_to_read);
+                                                                 dataEntity.setCmd(cmd);
+                                                                 if (cmd == "SET") {
+                                                                     std::cout << "[LISTENER] SET command received\n";
+                                                                     dataEntity.setKey(parts[1]);
+                                                                     dataEntity.setValue(parts[2]);
+                                                                 } else if (cmd == "DEL") {
+                                                                     std::cout << "[LISTENER] DEL command received\n";
+                                                                     dataEntity.setKey(parts[1]);
+                                                                 } else {
+                                                                     return;
+                                                                 }
+                                                                 if (const Message msg = Message::fromDataEntity(
+                                                                     INCR_SYNC, dataEntity); !msg.sendToSocket(
+                                                                     client_fd)) {
+                                                                     std::cerr <<
+                                                                             "[Master] Failed to send data to replica, disconnecting...\n";
+                                                                 }
+                                                             });
+                std::cout << "[LISTENER] new AOF data appended, current offset: " << offset_to_read << " read cmd " <<
+                        res << "\n";
+            });
             std::thread t(handle_replica, client_fd);
             t.detach();
-            std::thread data_thread(simulate_data_append, client_fd);
-            data_thread.detach();
         }
 
         close(server_fd);

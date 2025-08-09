@@ -10,7 +10,7 @@
 namespace blp {
     class RedisServiceImpl final : public brpc::RedisService {
     public:
-        RedisServiceImpl();
+        explicit RedisServiceImpl(LevelDBWrapper *db);
 
         [[nodiscard]] bool Set(const std::string &key, const std::string &value) const;
 
@@ -23,7 +23,7 @@ namespace blp {
         void AddCommandHandler(const std::string& command, std::unique_ptr<brpc::RedisCommandHandler> handler);
 
     private:
-        LevelDBWrapper *_db = LevelDBWrapper::getInstance();
+        LevelDBWrapper *db_;
         std::map<std::string, std::unique_ptr<brpc::RedisCommandHandler>> command_handlers_;
     };
 }

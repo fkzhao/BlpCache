@@ -34,13 +34,15 @@ namespace blp {
     public:
         DataEntity() = default;
 
-        DataEntity(uint64_t seq, const std::string &k, const std::string &v)
-            : sequence_(seq), key_(k), value_(v) {
+        DataEntity(uint64_t seq, const std::string &k, const std::string &v, const std::string &c)
+            : sequence_(seq), key_(k), value_(v), cmd_(c) {
         }
 
         // getters/setters
         uint64_t sequence() const { return sequence_; }
         void setSequence(uint64_t s) { sequence_ = s; }
+        const std::string &cmd() const { return cmd_; }
+        void setCmd(const std::string &c) { cmd_ = c; }
         const std::string &key() const { return key_; }
         void setKey(const std::string &k) { key_ = k; }
         const std::string &value() const { return value_; }
@@ -50,6 +52,10 @@ namespace blp {
             std::vector<uint8_t> buf;
             uint64_t seq_net = htobe64(sequence_);
             appendBytes(buf, &seq_net, sizeof(seq_net));
+
+            uint32_t cmd_len = htonl(static_cast<uint32_t>(cmd_.size()));
+            appendBytes(buf, &cmd_len, sizeof(cmd_len));
+            appendBytes(buf, cmd_.data(), cmd_.size());
 
             uint32_t key_len = htonl(static_cast<uint32_t>(key_.size()));
             appendBytes(buf, &key_len, sizeof(key_len));
@@ -66,6 +72,13 @@ namespace blp {
             if (len < sizeof(uint64_t)) return false;
             sequence_ = be64toh(*reinterpret_cast<const uint64_t*>(data + off));
             off += sizeof(uint64_t);
+
+            if (off + sizeof(uint32_t) > len) return false;
+            uint32_t cmd_len = ntohl(*reinterpret_cast<const uint32_t*>(data + off));
+            off += sizeof(uint32_t);
+            if (off + cmd_len > len) return false;
+            cmd_.assign(reinterpret_cast<const char *>(data + off), cmd_len);
+            off += cmd_len;
 
             if (off + sizeof(uint32_t) > len) return false;
             uint32_t key_len = ntohl(*reinterpret_cast<const uint32_t*>(data + off));
@@ -86,6 +99,7 @@ namespace blp {
         uint64_t sequence_{0};
         std::string key_;
         std::string value_;
+        std::string cmd_;
 
         static void appendBytes(std::vector<uint8_t> &buf, const void *p, size_t n) {
             const uint8_t *b = reinterpret_cast<const uint8_t *>(p);

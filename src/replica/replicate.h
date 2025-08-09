@@ -5,10 +5,12 @@
 #pragma once
 #include <brpc/server.h>
 #include <brpc/channel.h>
+#include "core/db.h"
+
 
 namespace blp {
     class ReplicationClient {
     public:
-        static static void startReplica(char* host, uint16_t port);
+        static void startReplica(char* host, uint16_t port, LevelDBWrapper *db);
     };
 }

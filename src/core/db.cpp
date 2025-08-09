@@ -28,7 +28,11 @@ namespace blp {
             options.filter_policy = filter_policy_ = leveldb::NewBloomFilterPolicy(10);
 
             leveldb::Status status = leveldb::DB::Open(options, dbPath, &db_);
-            return status.ok();
+            if (!status.ok()) {
+                std::cerr << "Failed to open LevelDB at " << dbPath << ": " << status.ToString() << std::endl;
+                return false;
+            }
+            return true;
         }
 
         bool put(const std::string &key, const std::string &value) const {
@@ -94,13 +98,7 @@ namespace blp {
         mutable std::mutex mutex_;
     };
 
-    LevelDBWrapper* LevelDBWrapper::getInstance() {
-        // C++ 17 standard guarantees that the initialization of a static local variable is thread-safe.
-        static LevelDBWrapper instance;
-        return &instance;
-    }
-
-    LevelDBWrapper::LevelDBWrapper() : impl_(std::make_unique<Impl>()) {
+    LevelDBWrapper::LevelDBWrapper(aof::Aof &aof) : impl_(std::make_unique<Impl>()), aof_(aof) {
     }
 
     LevelDBWrapper::~LevelDBWrapper() = default;
@@ -110,6 +108,10 @@ namespace blp {
     }
 
     bool LevelDBWrapper::put(const std::string &key, const std::string &value) const {
+        std::vector<std::string> cmd = {"SET", key, value};
+        if (!aof_.appendCommandAsync(cmd)) {
+            aof_.appendCommandBlocking(cmd);
+        }
         return impl_->put(key, value);
     }
 
@@ -118,6 +120,10 @@ namespace blp {
     }
 
     bool LevelDBWrapper::remove(const std::string &key) const {
+        std::vector<std::string> cmd = {"DEL", key};
+        if (!aof_.appendCommandAsync(cmd)) {
+            aof_.appendCommandBlocking(cmd);
+        }
         return impl_->remove(key);
     }
 
@@ -133,14 +139,13 @@ namespace blp {
         impl_->releaseSnapshot(snapshot);
     }
 
-
-    bool init_db() {
+    LevelDBWrapper* init_db(const std::string &db_path, blp::aof::Aof &aof) {
         // Initialize LevelDB storage
-        const auto storage = LevelDBWrapper::getInstance();
-        if (!storage->init(std::string(getenv("BLP_HOME")) + "/data", 256, 128, 2000)) {
+        auto *storage = new LevelDBWrapper(aof);
+        if (!storage->init(db_path, 256, 128, 2000)) {
             std::cerr << "Failed to initialize LevelDB" << std::endl;
-            return false;
+            return nullptr;
         }
-        return true;
+        return storage;
     }
 }

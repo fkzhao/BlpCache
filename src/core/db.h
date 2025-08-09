@@ -8,12 +8,11 @@
 #include <vector>
 #include <leveldb/db.h>
 
+#include "common/aof.h"
+
 namespace blp {
     class LevelDBWrapper {
     public:
-
-        // get singleton instance
-        static LevelDBWrapper* getInstance();
 
         // initialize the database with the specified path and options
         bool init(const std::string& dbPath, size_t cacheSizeMB = 128, size_t writeBufferSizeMB = 64, int maxOpenFiles = 1000) const;
@@ -37,19 +36,18 @@ namespace blp {
         // Note: The snapshot must be released after use to avoid memory leaks
         void releaseSnapshot(const leveldb::Snapshot* snapshot) const;
 
-        LevelDBWrapper(const LevelDBWrapper&) = delete;
-        LevelDBWrapper& operator=(const LevelDBWrapper&) = delete;
+        explicit LevelDBWrapper(aof::Aof &aof);
 
         ~LevelDBWrapper();
 
     private:
-        LevelDBWrapper();
 
         class Impl;
         std::unique_ptr<Impl> impl_;
+        aof::Aof &aof_;
     };
 
-    bool init_db();
+    LevelDBWrapper* init_db(const std::string &db_path, aof::Aof &aof);
 }
 
 

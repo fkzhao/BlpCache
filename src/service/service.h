@@ -6,5 +6,5 @@
 
 #include "service/redis_service.h"
 namespace blp {
-    RedisServiceImpl* init_redis_service();
+    RedisServiceImpl* init_redis_service(LevelDBWrapper *db);
 }

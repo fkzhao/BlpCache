@@ -10,8 +10,7 @@
 
 namespace blp {
 
-    void ReplicationClient::startReplica(char *host, uint16_t port) {
-        auto db = LevelDBWrapper::getInstance();
+    void ReplicationClient::startReplica(char *host, uint16_t port, LevelDBWrapper *db) {
         while (true) {
             try {
                 int sockfd = SocketUtils::create_client_socket(host, port);
@@ -33,9 +32,21 @@ namespace blp {
                                 len << std::endl;;
                         DataEntity entry;
                         header.toDataEntity(entry);
-                        bool res = db->put(entry.key(), entry.value());
-                        std::cout << "[Replica] Writing data entry to DB: sequence " << entry.sequence()
-                                  << ", key " << entry.key() << ", value " << entry.value() << " res " << res << std::endl;
+                        std::cout << "[Replica] Processing data entry: sequence " << entry.sequence()
+                                  << ", key " << entry.key() << ", value " << entry.value() << ", cmd " << entry.cmd() << std::endl;
+                        std::string cmd = entry.cmd();
+                        if (cmd.empty()) {
+                            continue;
+                        }
+                        if (cmd == "DEL") {
+                            std::cout << "[Replica] Deleting key " << entry.key() << std::endl;
+                            bool res = db->remove(entry.key());
+                            std::cout << "[Replica] Deleting data entry from DB: sequence " << entry.sequence()
+                                      << ", key " << entry.key() << ", res " << res << std::endl;
+                        } else if (cmd == "SET") {
+                            bool res = db->put(entry.key(), entry.value());
+                            std::cout << "[Replica] Setting key " << entry.key() << " to value " << entry.value() << " res " << res << std::endl;
+                        }
                     } else if (header.type == HEARTBEAT) {
                         std::cout << "[Replica] Receiving HEARTBEAT offset " << header.offset << " size " << header.
                                len << std::endl;

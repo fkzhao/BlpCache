@@ -13,10 +13,10 @@
 #include "core/db.h"
 
 namespace blp {
-    RedisServiceImpl* init_redis_service() {
+    RedisServiceImpl* init_redis_service(LevelDBWrapper *db) {
 
         // Create RedisServiceImpl instance
-        auto *redis_service_impl = new RedisServiceImpl();
+        auto *redis_service_impl = new RedisServiceImpl(db);
 
         // auth command handler
         std::unique_ptr<CommandHandler> auth_handler = std::make_unique<AuthCommandHandler>(redis_service_impl);
